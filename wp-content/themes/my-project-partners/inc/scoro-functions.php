@@ -741,7 +741,16 @@ function scoro_modify_rating($rating_object, $id = false ){
     $refresh_token = generate_refresh_token(TOKEN_URL);
 
     $access_token_url = ZOHO_BASE_URL .  '/oauth/v2/token?refresh_token='.$refresh_token.'&client_id='.CLIENT_ID.'&client_secret='.CLIENT_SECRET.'&grant_type=refresh_token';
+    
+    //get json file contents
+    $json_data = file_get_contents("json-files/accesstoken.json");
+    $decoded_data = json_decode($json_data, true);
+    $accesstoken1 = $decoded_data["access_token"];
+
+    //generate new access token
     $access_token = generate_access_token(access_token_url);
+
+    
 
     $fields = array(
         'apiKey' => SCORO_API_KEY,
@@ -768,7 +777,29 @@ function scoro_modify_rating($rating_object, $id = false ){
         'blocking'    => true, // added
         'body' => json_encode($fields))
     );
-    $result_zoho = create_record($access_token, $request_url_zoho, $rating_object);
+
+    try{
+        $result_zoho = create_record($accesstoken1, $request_url_zoho, $rating_object);
+    }catch (Exeption $e){
+        if($e != NULL){
+            $result_zoho = create_record($access_token, $request_url, $rating_object);
+
+            //update json access token value
+            array_walk($decoded_data, function (&$value, $key) {
+                if($key == "access_token"){ 
+                    $value = $access_token; 
+                }
+            });
+
+            //write to json file
+            $encode = json_encode($decoded_data, JSON_PRETTY_PRINT);
+            file_put_contents("json-files/accesstoken.json", $encode);
+        }else{
+            return $e;
+        }
+    }
+    
+    
 
     $results = json_decode( $result['body']);
 
