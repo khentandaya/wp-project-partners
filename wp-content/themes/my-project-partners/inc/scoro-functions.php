@@ -747,9 +747,6 @@ function scoro_modify_rating($rating_object, $id = false ){
     $decoded_data = json_decode($json_data, true);
     $accesstoken1 = $decoded_data["access_token"];
 
-    //generate new access token
-    $access_token = generate_access_token(access_token_url);
-
     
 
     $fields = array(
@@ -780,19 +777,22 @@ function scoro_modify_rating($rating_object, $id = false ){
 
     try{
         $result_zoho = create_record($accesstoken1, $request_url_zoho, $rating_object);
-    }catch (Exeption $e){
+    }catch (Exception $e){
         if($e != NULL){
+            //generate new access token
+            $access_token = generate_access_token(access_token_url);
             $result_zoho = create_record($access_token, $request_url, $rating_object);
 
             //update json access token value
-            array_walk($decoded_data, function (&$value, $key) {
-                if($key == "access_token"){ 
-                    $value = $access_token; 
-                }
-            });
+            // array_walk($decoded_data, function (&$value, $key) {
+            //     if($key == "access_token"){ 
+            //         $value = $access_token; 
+            //     }
+            // });
+            $decoded_data = ["access_token" => $access_token];
 
             //write to json file
-            $encode = json_encode($decoded_data, JSON_PRETTY_PRINT);
+            $encode = json_encode($decoded_data);
             file_put_contents("json-files/accesstoken.json", $encode);
         }else{
             return $e;

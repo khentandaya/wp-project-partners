@@ -20,7 +20,7 @@
         $result = curl_exec($ch);
         curl_close($ch);
         return json_decode($result)->access_token;
-      }
+    }
 
     function create_record($access_token, $url, $rating_obj){
         //Authorization: Zoho-oauthtoken access_token
@@ -38,5 +38,5 @@
         $result = curl_exec($ch);
         curl_close($ch);
         var_dump($result);
-      }
+    }
 ?>
